@@ -1,22 +1,25 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8"/>
-        <title>Próximamente Salfatix</title>
-    </head>
-    <body>
-        <h1>Salfatix</h1>
-        <p>Que no te spoileen, descúbrelo y veelo antes!!!</p>
-        <p>
-            Encuentra tu próxima película o serie en segundos, sin perder horas
-            eligiendo.
+{% extends 'base.html' %}
+
+{% block title %}Próximamente: Salfatix{% endblock %}
+
+{% block content %}
+<div class="container col-xxl-8 px-4 py-5">
+    <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+      <div class="col-10 col-sm-8 col-lg-6">
+        <img src="{{ url_for('static', filename='preview.png') }}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="700" height="500" loading="lazy">
+      </div>
+      <div class="col-lg-6">
+        <h1 class="display-5 fw-bold lh-1 mb-3">Salfatix</h1>
+        <p class="lead fw-bold">Tú mejor guía de películas y series.</p>
+        <p class="lead">
+            Encuentra tu próxima película o serie en segundos, sin perder horas eligiendo.
         </p>
-        <h2>Sé de los primeros!</h2>
-        <p>
-            El estreno de esta aplicación está previsto para mediados de enero del 2025. 🚀
-        </p>
-        <p>
-            Por mientras, <a href="">déjamos tu correo</a> y te avisaremos
-        </p>
-    </body>
-</html>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+          <a href="https://forms.gle/AtvrCRxizG4bdnYKA" class="btn btn-primary btn-lg px-4 me-md-2">
+            Inscríbete en la lista de espera
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
