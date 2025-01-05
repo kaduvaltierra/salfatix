@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Próximamente: Salfatix{% endblock %}
 
@@ -6,20 +6,25 @@
 <div class="container col-xxl-8 px-4 py-5">
     <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
       <div class="col-10 col-sm-8 col-lg-6">
-        <img src="{{ url_for('static', filename='preview.png') }}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="700" height="500" loading="lazy">
+        <img src="{{ url_for('static', filename='img/preview.jpeg') }}" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="700" height="500" loading="lazy">
       </div>
       <div class="col-lg-6">
-        <h1 class="display-5 fw-bold lh-1 mb-3">Salfatix</h1>
+        <h1 class="display-5 fw-bold lh-1 mb-3" style="font-family: 'Bebas Neue', sans-serif; color: red;">SALFATIX</h1>
         <p class="lead fw-bold">Tú mejor guía de películas y series.</p>
         <p class="lead">
-            Encuentra tu próxima película o serie en segundos, sin perder horas eligiendo.
+            Te recomendamos tu próxima película, sin perder horas eligiendo.
         </p>
         <div class="d-grid gap-2 d-md-flex justify-content-md-start">
           <a href="https://forms.gle/AtvrCRxizG4bdnYKA" class="btn btn-primary btn-lg px-4 me-md-2">
-            Inscríbete en la lista de espera
+            Inscríbete próximamente con tu perfil
           </a>
         </div>
       </div>
     </div>
   </div>
 {% endblock %}
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<!-- Optionally add Graphique as a local font if needed -->
+

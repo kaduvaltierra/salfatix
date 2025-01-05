@@ -9,7 +9,8 @@
             <!-- Bootstrap CSS -->
             {{ bootstrap.load_css() }}
         {% endblock %}
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+        <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
         <title>{% block title %}Salfatix{% endblock %}</title>
         {% endblock %}
     </head>

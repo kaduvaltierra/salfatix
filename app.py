@@ -12,27 +12,26 @@ app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 db_config(app)
 
-
 @app.route('/')
 def index():
     return render_template('landing.html')
 
 
-
 @app.route('/chat', methods=['GET', 'POST'])
 def chat():
     user = db.session.query(User).first()
-
+    
     if request.method == 'GET':
         return render_template('chat.html', messages=user.messages)
 
     intent = request.form.get('intent')
 
     intents = {
-        'Quiero tener suerte': 'Recomiéndame una película',
         'Terror': 'Recomiéndame una película de terror',
-        'Acción': 'Recomiéndame una película de acción',
         'Comedia': 'Recomiéndame una película de comedia',
+        'Accion': 'Recomiéndame una película de acción',
+        'Infantil': 'Recomiéndame una película infantil',
+        'Romantica': 'Recomiéndame una película romántica',
         'Enviar': request.form.get('message')
     }
 
@@ -45,7 +44,7 @@ def chat():
 
         messages_for_llm = [{
             "role": "system",
-            "content": "Eres un chatbot que recomienda películas, te llamas 'Next Moby'. Tu rol es responder recomendaciones de manera breve y concisa. No repitas recomendaciones.",
+            "content": "Eres un chatbot que recomienda películas, te llamas 'Salfatix'. Tu rol es responder recomendaciones de manera breve y concisa. No repitas recomendaciones.",
         }]
 
         for message in user.messages:
@@ -78,7 +77,7 @@ def user(username):
 
 
 @app.post('/recommend')
-def recommend():
+def recommend():    
     user = db.session.query(User).first()
     data = request.get_json()
     user_message = data['message']
@@ -88,7 +87,7 @@ def recommend():
 
     messages_for_llm = [{
         "role": "system",
-        "content": "Eres un chatbot que recomienda películas, te llamas 'Next Moby'. Tu rol es responder recomendaciones de manera breve y concisa. No repitas recomendaciones.",
+        "content": "Eres un chatbot que recomienda películas, te llamas 'Salfatix'. Tu rol es responder recomendaciones de manera breve y concisa. No repitas recomendaciones.",
     }]
 
     for message in user.messages:
