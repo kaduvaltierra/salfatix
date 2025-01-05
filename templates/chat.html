@@ -24,19 +24,17 @@
         {% endfor %}
 
         <form method="POST">
-            <div class="input-group mb-3">
+            <div class="d-flex justify-content-center mt-4">
+                <button class="btn custom-btn mx-2" name="intent" value="Terror" formmethod="POST">Terror</button>
+                <button class="btn custom-btn mx-2" name="intent" value="Comedia" formmethod="POST">Comedia</button>
+                <button class="btn custom-btn mx-2" name="intent" value="Accion" formmethod="POST">Acción</button>
+                <button class="btn custom-btn mx-2" name="intent" value="Infantil" formmethod="POST">Infantil</button>
+                <button class="btn custom-btn mx-2" name="intent" value="Romantica" formmethod="POST">Romántica</button>
+            </div>
+            <div class="input-group mb-3 mt-4">
                 <input name="message" class="form-control" placeholder="Enviar mensaje a Salfatix o seleccionar alguna de las opciones de categorias" aria-label="Tu mensaje" aria-describedby="send-message" autofocus/>
                 <input type="submit" class="btn custom-btn" id="send-message" name="intent" value="Enviar"/>
-            </div>
-
-
-            <div class="d-flex justify-content-center mt-4">
-                <button class="btn btn-outline-primary mx-2" name="intent" value="Terror"       formmethod="POST">Terror</button>
-                <button class="btn btn-outline-primary mx-2" name="intent" value="Comedia"      formmethod="POST">Comedia</button>
-                <button class="btn btn-outline-primary mx-2" name="intent" value="Accion"       formmethod="POST">Acción</button>
-                <button class="btn btn-outline-primary mx-2" name="intent" value="Infantil"     formmethod="POST">Infantil</button>
-                <button class="btn btn-outline-primary mx-2" name="intent" value="Romantica"    formmethod="POST">Romántica</button>
-            </div>
+            </div>            
         </form>
     </div>
 {% endblock %}

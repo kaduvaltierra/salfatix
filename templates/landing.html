@@ -2,6 +2,8 @@
 
 {% block title %}Próximamente: Salfatix{% endblock %}
 
+Conversa con nuestro Chat Salfatix
+
 {% block content %}
 <div class="container col-xxl-8 px-4 py-5">
     <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
@@ -19,6 +21,16 @@
             Inscríbete próximamente con tu perfil
           </a>
         </div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-3">
+          <a href="{{ url_for('user', id=1) }}" target="_blank" class="btn btn-primary btn-lg px-4 me-md-2">
+            Hola {{ nombre_usuario }} !! Modifica los datos de tu cuenta
+          </a>        
+        </div>        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-3">
+          <a href="{{ url_for('chat') }}" target="_blank"  class="btn btn-primary btn-lg px-4 me-md-2">
+            Conversa con nuestro Chat Salfatix
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -26,5 +38,3 @@
 
 <!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-<!-- Optionally add Graphique as a local font if needed -->
-
