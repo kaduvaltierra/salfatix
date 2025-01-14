@@ -39,12 +39,17 @@ tools = [
             "parameters": {
                 "type": "object",
                 "required": [
-                    "name"
+                    "name",
+                    "media_type"
                 ],
                 "properties": {
                     "name": {
                         "type": "string",
-                        "description": "The name of the movie to search for"
+                        "description": "The name of the movie or tv serie to search for"
+                    },
+                    "media_type": {
+                        "type": "string",
+                        "description": "The type of media(movie or tv serie) to search for"
                     }
                 },
                 "additionalProperties": False
@@ -125,7 +130,8 @@ def chat():
         if tool_call.function.name == 'where_to_watch':
             arguments = json.loads(tool_call.function.arguments)
             name = arguments['name']
-            model_recommendation = where_to_watch(name, user)        
+            medita_type = arguments['media_type']
+            model_recommendation = where_to_watch(name, medita_type)        
     else:
         model_recommendation = chat_completion.choices[0].message.content
 
