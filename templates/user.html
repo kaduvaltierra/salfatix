@@ -1,56 +1,37 @@
 {% extends 'base.html' %}
 
+{% block title %}
+    Tu perfil
+{% endblock %}
+
+{% from 'bootstrap5/form.html' import render_form %}
+
 {% block content %}
-<div class="container col-xxl-8 px-4 py-5">
-    <h1 class="display-5 fw-bold lh-1 mb-3">Editar Perfil de Usuario</h1>
+    {% include 'navbar.html' %}
 
-    <!-- Mostrar mensajes de estado -->
-    {% if status == 'success' %}
-    <div class="alert alert-success" role="alert">
-        Los datos se actualizaron correctamente.
+    <div class="container col-xxl-8 py-5">
+        <h1 class="mb-4">Tu perfil</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ message }}
+                            </div>
+                        {% elif category == 'info' %}
+                            <div class="alert alert-info" role="alert">
+                                {{ message }}
+                            </div>
+                        {% elif category == 'message' %}
+                            <div class="alert alert-success" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        {{ render_form(form) }}
     </div>
-    {% elif status == 'not_found' %}
-    <div class="alert alert-danger" role="alert">
-        Usuario no encontrado.
-    </div>
-    {% endif %}
-
-    <form action="" method="POST">
-        <!-- Campo de Nombre de Usuario -->
-        <div class="mb-3">
-            <label for="nombre_usuario" class="form-label">Nombre de Usuario</label>
-            <input type="text" class="form-control" id="nombre_usuario" name="nombre_usuario" value="{{ user.nombre_usuario }}" required>
-        </div>
-
-        <!-- Campo de Email -->
-        <div class="mb-3">
-            <label for="email" class="form-label">Correo Electrónico</label>
-            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
-        </div>
-
-        <!-- Campo de Película Favorita -->
-        <div class="mb-3">
-            <label for="pelicula_favorita" class="form-label">Película Favorita</label>
-            <input type="text" class="form-control" id="pelicula_favorita" name="pelicula_favorita" value="{{ user.pelicula_favorita }}" required>
-        </div>
-
-        <!-- Campo de Género Favorito -->
-        <div class="mb-3">
-            <label for="genero_favorito" class="form-label">Género Favorito</label>
-            <select class="form-select" id="genero_favorito" name="genero_favorito" required>
-                <option value="Terror" {% if user.genero_favorito == 'Terror' %}selected{% endif %}>Terror</option>
-                <option value="Comedia" {% if user.genero_favorito == 'Comedia' %}selected{% endif %}>Comedia</option>
-                <option value="Acción" {% if user.genero_favorito == 'Acción' %}selected{% endif %}>Acción</option>
-                <option value="Infantil" {% if user.genero_favorito == 'Infantil' %}selected{% endif %}>Infantil</option>
-                <option value="Romantica" {% if user.genero_favorito == 'Romantica' %}selected{% endif %}>Romantica</option>
-            </select>
-        </div>
-
-        <!-- Botones -->
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <button type="submit" class="btn btn-primary btn-lg px-4">Guardar Cambios</button>
-            <a href="/" class="btn btn-secondary btn-lg px-4">Cancelar</a>
-        </div>
-    </form>
-</div>
 {% endblock %}

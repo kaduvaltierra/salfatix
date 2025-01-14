@@ -1,127 +1,200 @@
-from flask import Flask, render_template, request,redirect,url_for,flash
+import json
+from flask import Flask, render_template, request,redirect,url_for,flash,jsonify
 from flask_bootstrap import Bootstrap5
 from openai import OpenAI
 from dotenv import load_dotenv
 from db import db, db_config
+from os import getenv
+from bot import where_to_watch
 from models import User, Message
+from forms import ProfileForm, SignUpForm, LoginForm
+from flask_wtf.csrf import CSRFProtect
+from flask_login import LoginManager, login_required, login_user, current_user, logout_user
+from flask_bcrypt import Bcrypt
 
 load_dotenv()
  
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.login_message = 'Inicia sesión para continuar'
 client = OpenAI()
 app = Flask(__name__)
+app.secret_key = getenv("KEY_SALFATIX")
 bootstrap = Bootstrap5(app)
+csrf = CSRFProtect(app)
+login_manager.init_app(app)
+bcrypt = Bcrypt(app)
 db_config(app)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+tools = [
+    {
+        'type': 'function',
+        'function': {
+            "name": "where_to_watch",
+            "description": "Returns a list of platforms where a specified movie can be watched.",
+            "parameters": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the movie to search for"
+                    }
+                },
+                "additionalProperties": False
+            }
+        },
+    },
+    {
+        'type': 'function',
+        'function': {
+            "name": "search_movie_or_tv_show",
+            "description": "Returns information about a specified movie or TV show.",
+            "parameters": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the movie/tv show to search for"
+                    }
+                },
+                "additionalProperties": False
+            }
+        },
+    }
+]
+
 @app.route('/')
-def index():
-    # Obtengo nombre del usuario desde la BDatos, class USER
-    user = db.session.query(User).first()
-  
-    return render_template('landing.html',nombre_usuario = user.nombre_usuario)
+def index():  
+    return render_template('landing.html')
 
 @app.route('/chat', methods=['GET', 'POST'])
+@login_required
 def chat():
-    user = db.session.query(User).first()
+    user = db.session.query(User).get(current_user.id)
 
     if request.method == 'GET':
         return render_template('chat.html', messages=user.messages)
-
-    intent = request.form.get('intent')
-
-    intents = {
-        'Terror': 'Recomiéndame una película de terror',
-        'Comedia': 'Recomiéndame una película de comedia',
-        'Accion': 'Recomiéndame una película de acción',
-        'Infantil': 'Recomiéndame una película infantil',
-        'Romantica': 'Recomiéndame una película romántica',
-        'Enviar': request.form.get('message')
-    }
-
-    if intent in intents:
-        user_message = intents[intent]
-
-        # Guardar nuevo mensaje en la BD
-        db.session.add(Message(content=user_message, author="user", user=user))
-        db.session.commit()
-
-        messages_for_llm = [{
-            "role": "system",
-            "content": "Eres un chatbot que recomienda películas, te llamas 'Salfatix'. Tu rol es responder recomendaciones de manera breve y concisa. No repitas recomendaciones.",
-        }]
-
-        for message in user.messages:
-            messages_for_llm.append({
-                "role": message.author,
-                "content": message.content,
-            })
-
-        chat_completion = client.chat.completions.create(
-            messages=messages_for_llm,
-            model="gpt-4o",
-            temperature=1
-        )
-
-        model_recommendation = chat_completion.choices[0].message.content
-        db.session.add(Message(content=model_recommendation, author="assistant", user=user))
-        db.session.commit()
-
-        return render_template('chat.html', messages=user.messages)
-
-@app.route('/user/<int:id>', methods=['GET', 'POST'])
-def user(id, status=None):
-    # Manejo del método POST para actualizar datos
-    if request.method == 'POST':
-        # Busca al usuario en la base de datos por su ID
-        user = db.session.query(User).filter_by(id=id).first()
-
-        # Manejo de errores: Si no se encuentra el usuario
-        if not user:
-            return "Usuario no encontrado", 404
-
-        # Actualiza los campos del usuario con los valores enviados desde el formulario
-        user.nombre_usuario = request.form.get('nombre_usuario')
-        user.email = request.form.get('email')
-        user.pelicula_favorita = request.form.get('pelicula_favorita')
-        user.genero_favorito = request.form.get('genero_favorito')
-
-        # Guarda los cambios en la base de datos
-        db.session.commit()
-
-        # Redirige con un estado de éxito
-        return redirect(url_for('user', id=id, status='success'))
-
-    # Método GET: Mostrar el perfil
-    user = db.session.query(User).filter_by(id=id).first()
-    if not user:
-        return "Usuario no encontrado", 404
-
-    # Leer el estado desde la URL
-    status = request.args.get('status', '')
-
-    # Renderiza la plantilla con los datos del usuario y el estado
-    return render_template('user.html', user=user, status=status)
-
-@app.route('/update_user', methods=['POST'])
-def update_user():
-    # Obtener el ID del usuario desde el formulario
-    user_id = request.form.get('id')
-
-    # Buscar al usuario en la base de datos por su ID
-    user = db.session.query(User).filter_by(id=user_id).first()
-
-    # Manejo de errores: Si no se encuentra el usuario
-    if not user:
-        return "Usuario no encontrado", 404
-
-    # Actualizar los campos del usuario con los valores enviados desde el formulario
-    user.nombre_usuario = request.form.get('nombre_usuario')
-    user.email = request.form.get('email')
-    user.pelicula_favorita = request.form.get('pelicula_favorita')
-    user.genero_favorito = request.form.get('genero_favorito')
-
-    # Guardar los cambios en la base de datos
+    
+    user_message = request.form.get('message')
+    print(user_message)
+    # Guardar nuevo mensaje en la BD
+    db.session.add(Message(content=user_message, author="user", user=user))
     db.session.commit()
 
-    # Redirigir a la página del perfil del usuario con un mensaje de éxito
-    flash("Datos actualizados correctamente.", "success")
-    return redirect(url_for('user', id=user.id))
+    # Crear prompt para el modelo
+    system_prompt = '''Eres un chatbot que recomienda películas, te llamas 'Salfatix'.
+    - Tu rol es responder recomendaciones de manera breve y concisa.
+    - No repitas recomendaciones.
+    '''
+
+        # Incluir preferencias del usuario
+    if user.genero_favorito:
+        system_prompt += f'- El género favorito del usuario es: {user.genero_favorito}.\n'
+    if user.pelicula_favorita:
+        system_prompt += f'- La película favorita del usuario es: {user.pelicula_favorita}.\n'
+
+    print(system_prompt)
+    messages_for_llm = [{"role": "system", "content": system_prompt}]
+
+    for message in user.messages:
+        messages_for_llm.append({
+            "role": message.author,
+            "content": message.content,
+        })
+
+    chat_completion = client.chat.completions.create(
+        messages=messages_for_llm,
+        model="gpt-4o",
+        temperature=1,
+        tools=tools,
+    )
+
+    if chat_completion.choices[0].message.tool_calls:
+        tool_call = chat_completion.choices[0].message.tool_calls[0]
+
+        if tool_call.function.name == 'where_to_watch':
+            arguments = json.loads(tool_call.function.arguments)
+            name = arguments['name']
+            model_recommendation = where_to_watch(name, user)        
+    else:
+        model_recommendation = chat_completion.choices[0].message.content
+
+    db.session.add(Message(content=model_recommendation, author="assistant", user=user))
+    db.session.commit()
+
+    accept_header = request.headers.get('Accept')
+    if accept_header and 'application/json' in accept_header:
+        last_message = user.messages[-1]
+        return jsonify({
+            'author': last_message.author,
+            'content': last_message.content,
+        })
+
+    return render_template('chat.html', messages=user.messages)
+
+@app.route('/sign-up', methods=['GET', 'POST'])
+def sign_up():
+    form = SignUpForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            nombre_usuario = form.nombre_usuario.data
+            email = form.email.data
+            password = form.password.data
+            user = User(email=email, password_hash=bcrypt.generate_password_hash(password).decode('utf-8'), nombre_usuario=nombre_usuario)
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            return redirect(url_for('chat'))
+    return render_template('sign-up.html', form=form)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            email = form.email.data
+            password = form.password.data
+            user = db.session.query(User).filter_by(email=email).first()
+            if user and bcrypt.check_password_hash(user.password_hash, password):
+                login_user(user)
+                return redirect('chat')
+
+            flash("El correo o la contraseña es incorrecta.", "error")
+
+    return render_template('log-in.html', form=form)
+
+@app.route('/user', methods=['GET', 'POST'])
+@login_required
+def user():
+    user = db.session.query(User).get(current_user.id)
+    # Manejo del método POST para actualizar datos
+    if request.method == 'POST':
+        form = ProfileForm()
+        if form.validate_on_submit():
+            user.nombre_usuario = form.nombre_usuario.data
+            user.pelicula_favorita = form.pelicula_favorita.data
+            user.genero_favorito = form.genero_favorito.data
+            db.session.commit()
+            flash('Datos actualizados correctamente.', 'message')
+        else:
+            flash('Error al actualizar los datos.', 'error')
+    else:
+        form = ProfileForm(obj=user)
+    
+    return render_template('user.html', form=form)
+
+@app.get('/logout')
+def logout():
+    logout_user()
+    return redirect('/')

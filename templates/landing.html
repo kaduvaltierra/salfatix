@@ -1,6 +1,6 @@
 ﻿{% extends 'base.html' %}
 
-{% block title %}Próximamente: Salfatix{% endblock %}
+{% block title %}Salfatix - Tú mejor guía de películas y series{% endblock %}
 
 Conversa con nuestro Chat Salfatix
 
@@ -16,18 +16,8 @@ Conversa con nuestro Chat Salfatix
         <p class="lead">
             Te recomendamos tu próxima película, sin perder horas eligiendo.
         </p>
-        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-          <a href="https://forms.gle/AtvrCRxizG4bdnYKA" class="btn btn-primary btn-lg px-4 me-md-2">
-            Inscríbete próximamente con tu perfil
-          </a>
-        </div>
         <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-3">
-          <a href="{{ url_for('user', id=1) }}" target="_blank" class="btn btn-primary btn-lg px-4 me-md-2">
-            Hola {{ nombre_usuario }} !! Modifica los datos de tu cuenta
-          </a>        
-        </div>        
-        <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-3">
-          <a href="{{ url_for('chat') }}" target="_blank"  class="btn btn-primary btn-lg px-4 me-md-2">
+          <a href="/chat"  class="btn btn-primary btn-lg px-4 me-md-2">
             Conversa con nuestro Chat Salfatix
           </a>
         </div>
