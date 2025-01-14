@@ -58,7 +58,7 @@ def where_to_watch(search_term: str, medita_type: str):
         string_providers = ', '.join(providers)
         print(string_providers)
 
-        return f'Puedes ver la película {name} en las siguientes plataformas: {string_providers}. 🍿🎬\n\n{overview}\n\nPuntuación: {vote_average}/10'
+        return f'Puedes ver la película {name} en las siguientes plataformas: {string_providers}.<br/>🍿🎬{overview}<br/>Puntuación: {vote_average}/10'
     else:
         print(medita_type)    
         url_tvserie = "https://api.themoviedb.org/3/search/tv?query="+search_term+"&include_adult=false&language=es-CL&page=1"
@@ -81,16 +81,16 @@ def where_to_watch(search_term: str, medita_type: str):
             response_watch_providers = requests.get(url_watch_provider, headers=headers)
             data_providers = response_watch_providers.json()
         except:
-            return f'No pude encontrar la película {search_term} en mi base de datos de proveedores 😞.'
+            return f'No pude encontrar la serie {search_term} en mi base de datos de proveedores 😞.'
 
         if not data_providers['results']:
-            return f'No pude encontrar la película {search_term} en mi base de datos de proveedores 😞.'
+            return f'No pude encontrar la serie {search_term} en mi base de datos de proveedores 😞.'
         
         providers = [d['provider_name'] for d in data_providers['results']['CL']['flatrate']]
         string_providers = ', '.join(providers)
         print(string_providers)
 
-        return f'Puedes ver la serie {name} en las siguientes plataformas: {string_providers}. 🍿🎬\n\n{overview}\n\nPuntuación: {vote_average}/10'
+        return f'Puedes ver la serie {name} en las siguientes plataformas: {string_providers}.<br/>🍿🎬{overview}<br/>Puntuación: {vote_average}/10'
 
     
     # movie_or_tv_show = search_platforms(search_term)
