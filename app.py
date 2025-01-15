@@ -125,24 +125,39 @@ def chat():
     )
 
     model_recommendation = ''
-    if chat_completion.choices[0].message.tool_calls:
-        print(len(chat_completion.choices[0].message.tool_calls))
-        
-        for tool_call in chat_completion.choices[0].message.tool_calls:
+    if chat_completion.choices[0].message.tool_calls:        
+        if(len(chat_completion.choices[0].message.tool_calls) > 1):
+            tool_calls = chat_completion.choices[0].message.tool_calls
+            tool_call_smotv = [tool_call for tool_call in tool_calls if tool_call.function.name == 'search_movie_or_tv_show']
+            tool_call_wtw = [tool_call for tool_call in tool_calls if tool_call.function.name == 'where_to_watch']
+
+            print('Primero ejecuto where_to_watch')
+            arguments_wtw = json.loads(tool_call_wtw[0].function.arguments)
+            name = arguments_wtw['name']
+            medita_type = arguments_wtw['media_type']
+            response_wtw = where_to_watch(name, medita_type, 'small')
+            
+            print('Segundo ejecuto search_movie_or_tv_show')
+            arguments_smotv = json.loads(tool_call_smotv[0].function.arguments)
+            name = arguments_smotv['name']
+            model_recommendation = search_movie_or_tv_show(name, user, client, response_wtw)
+
+            db.session.add(Message(content=model_recommendation, author="assistant", user=user))
+            db.session.commit()                
+        else:
+            tool_call = chat_completion.choices[0].message.tool_calls[0]
             if tool_call.function.name == 'where_to_watch':
-                print(tool_call.function.arguments)
                 arguments = json.loads(tool_call.function.arguments)
                 name = arguments['name']
                 medita_type = arguments['media_type']
-                model_recommendation = model_recommendation +'<br/>'+ where_to_watch(name, medita_type)
+                model_recommendation = where_to_watch(name, medita_type, 'full')
                 db.session.add(Message(content=model_recommendation, author="assistant", user=user))
                 db.session.commit()
                 
             if tool_call.function.name == 'search_movie_or_tv_show':
-                print(tool_call.function.arguments)
                 arguments = json.loads(tool_call.function.arguments)
                 name = arguments['name']
-                model_recommendation = model_recommendation +'<br/>'+ search_movie_or_tv_show(name, user, client)
+                model_recommendation = search_movie_or_tv_show(name, user, client)
                 db.session.add(Message(content=model_recommendation, author="assistant", user=user))
                 db.session.commit()                
     else:

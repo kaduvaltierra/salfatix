@@ -2,3 +2,10 @@
     background-color: #8b0000;
     color: #fff;
 }
+
+.container_img {
+    display: grid;
+    align-items: center; 
+    grid-template-columns: 1fr 10fr 0fr;
+    column-gap: 10px;
+}
