@@ -34,7 +34,7 @@ function onLoad() {
         let messageHTML = ''
         if (message.author === 'assistant') {
             messageHTML = `
-                <div class="d-flex flex-row justify-content-start mb-4">
+                <div class="d-flex flex-row justify-content-start mb-4 me-3 ms-3">
                     <img class="bg-gray" src="static/img/salfatix_avatar.png" alt="avatar 1" style="width: 65px; height: 100%;">
                     <div class="p-3 ms-3" style="border-radius: 15px; background-color: rgba(57, 192, 237, .2);">
                         <p class="mb-0">${message.content}</p>
