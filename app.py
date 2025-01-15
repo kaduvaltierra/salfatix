@@ -5,7 +5,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from db import db, db_config
 from os import getenv
-from bot import where_to_watch
+from bot import where_to_watch, search_movie_or_tv_show
 from models import User, Message
 from forms import ProfileForm, SignUpForm, LoginForm
 from flask_wtf.csrf import CSRFProtect
@@ -124,19 +124,31 @@ def chat():
         tools=tools,
     )
 
+    model_recommendation = ''
     if chat_completion.choices[0].message.tool_calls:
-        tool_call = chat_completion.choices[0].message.tool_calls[0]
-
-        if tool_call.function.name == 'where_to_watch':
-            arguments = json.loads(tool_call.function.arguments)
-            name = arguments['name']
-            medita_type = arguments['media_type']
-            model_recommendation = where_to_watch(name, medita_type)        
+        print(len(chat_completion.choices[0].message.tool_calls))
+        
+        for tool_call in chat_completion.choices[0].message.tool_calls:
+            if tool_call.function.name == 'where_to_watch':
+                print(tool_call.function.arguments)
+                arguments = json.loads(tool_call.function.arguments)
+                name = arguments['name']
+                medita_type = arguments['media_type']
+                model_recommendation = model_recommendation +'<br/>'+ where_to_watch(name, medita_type)
+                db.session.add(Message(content=model_recommendation, author="assistant", user=user))
+                db.session.commit()
+                
+            if tool_call.function.name == 'search_movie_or_tv_show':
+                print(tool_call.function.arguments)
+                arguments = json.loads(tool_call.function.arguments)
+                name = arguments['name']
+                model_recommendation = model_recommendation +'<br/>'+ search_movie_or_tv_show(name, user, client)
+                db.session.add(Message(content=model_recommendation, author="assistant", user=user))
+                db.session.commit()                
     else:
-        model_recommendation = chat_completion.choices[0].message.content
-
-    db.session.add(Message(content=model_recommendation, author="assistant", user=user))
-    db.session.commit()
+        model_recommendation = chat_completion.choices[0].message.content    
+        db.session.add(Message(content=model_recommendation, author="assistant", user=user))
+        db.session.commit()
 
     accept_header = request.headers.get('Accept')
     if accept_header and 'application/json' in accept_header:

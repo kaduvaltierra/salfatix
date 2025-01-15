@@ -71,10 +71,7 @@ def where_to_watch(search_term: str, medita_type: str):
         if not data_tvserie['results']:
             return f'No pude encontrar {search_term} en mi base de datos de series 😞. Tal vez puedes intentar revisando en TMDB: https://www.themoviedb.org/search?language=es&query={search_term}'
             
-        id = data_tvserie['results'][0]['id']
-        name = data_tvserie['results'][0]['original_name']
-        overview = data_tvserie['results'][0]['overview']
-        vote_average = data_tvserie['results'][0]['vote_average']
+        id = data_tvserie['results'][0]['id']    
 
         url_watch_provider = "https://api.themoviedb.org/3/tv/"+str(id)+"/watch/providers"    
         try:
@@ -90,54 +87,58 @@ def where_to_watch(search_term: str, medita_type: str):
         string_providers = ', '.join(providers)
         print(string_providers)
 
-        return f'Puedes ver la serie {name} en las siguientes plataformas: {string_providers}.<br/>🍿🎬{overview}<br/>Puntuación: {vote_average}/10'
+        return string_providers #f'Puedes ver la serie {name} en las siguientes plataformas: {string_providers}.<br/>🍿🎬{overview}<br/>Puntuación: {vote_average}/10'
 
+def search_movie_or_tv_show(search_term: str, user: User, client: OpenAI):
+    api_key_tmdb = os.environ.get("API_TMDB_TOKEN")    
+    headers = {
+        "accept": "application/json",
+        "Authorization": "Bearer "+api_key_tmdb
+    }
+
+    print(search_term)
+    url_multi = "https://api.themoviedb.org/3/search/multi?query="+search_term+"&include_adult=false&language=es-CL&page=1&region=Chile"
+    try:
+        response_multi = requests.get(url_multi, headers=headers)
+        data_multi = response_multi.json()        
+    except:
+        return f'No pude encontrar {search_term} en mi base de datos de películas/series 😞. Tal vez puedes intentar revisando en TMDB: https://www.themoviedb.org/search?language=es&query={search_term}'
     
-    # movie_or_tv_show = search_platforms(search_term)
-
-    # if not movie_or_tv_show:
-    #     return f'No estoy seguro de dónde puedes ver esta película o serie :(, pero quizas puedes revisar en JustWatch: https://www.justwatch.com/cl/buscar?q={search_term}'
+    if not data_multi['results']:
+        return f'No pude encontrar {search_term} en mi base de datos de películas/series 😞. Tal vez puedes intentar revisando en TMDB: https://www.themoviedb.org/search?language=es&query={search_term}'
     
+    media_type = data_multi['results'][0]['media_type']
+    if media_type == 'movie':
+        name = data_multi['results'][0]['original_title']
+    else:
+        name = data_multi['results'][0]['original_name']
 
-    # system_prompt = build_prompt(user, string_providers) #ID 273481
+    overview = data_multi['results'][0]['overview']
+    vote_average = data_multi['results'][0]['vote_average']
+    
+    poster_path = data_multi['results'][0]['poster_path']
 
-    # messages_for_llm = [{"role": "system", "content": system_prompt}]
+    system_prompt = build_prompt(user, f'''
+    La información que tengo y debes utilizar para entregar una respuesta son:
+    - Nombre: {name}
+    - Descripción: {overview}
+    - Puntuación: {vote_average}/10
+    - URL Imagen Poster: https://image.tmdb.org/t/p/w500{poster_path}    
+    - Tipo de contenido: {media_type}
+    ''')
+    
+    messages_for_llm = [{"role": "system", "content": system_prompt}]
 
-    # for message in user.messages:
-    #     messages_for_llm.append({
-    #         "role": message.author,
-    #         "content": message.content,
-    #     })
+    for message in user.messages:
+        messages_for_llm.append({
+            "role": message.author,
+            "content": message.content,
+        })
 
-    # chat_completion = client.chat.completions.create(
-    #     messages=messages_for_llm,
-    #     model="gpt-4o",
-    #     temperature=1,
-    # )
+    chat_completion = client.chat.completions.create(
+        messages=messages_for_llm,
+        model="gpt-4o",
+        temperature=1,
+    )
 
-    # return chat_completion.choices[0].message.content
-
-
-#def search_movie_or_tv_show(client: OpenAI, search_term: str, user: User):
-    # movie_or_tv_show = search(search_term)
-
-    # if movie_or_tv_show:
-    #     system_prompt = build_prompt(user, str(movie_or_tv_show))
-    # else:
-    #     system_prompt = build_prompt(user, '')
-
-    # messages_for_llm = [{"role": "system", "content": system_prompt}]
-
-    # for message in user.messages:
-    #     messages_for_llm.append({
-    #         "role": message.author,
-    #         "content": message.content,
-    #     })
-
-    # chat_completion = client.chat.completions.create(
-    #     messages=messages_for_llm,
-    #     model="gpt-4o",
-    #     temperature=1,
-    # )
-
-    # return chat_completion.choices[0].message.content
+    return chat_completion.choices[0].message.content
