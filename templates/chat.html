@@ -8,7 +8,7 @@
 
 {% block content %}
     {% include 'navbar.html' %}
-    <div id="scroller">
+    <div id="scroller" style="margin-top: 100px!important;">
         <div id="anchor" class="container col-xxl-8 py-5">
             <div id="messages">
             {% for message in messages %}
@@ -32,12 +32,12 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="mb-3">
                     <span>Buscar según categoria:&nbsp;</span>
-                    <input type="submit" class="btn btn-sm custom-btn" name="message" value="Terror"/>
-                    <input type="submit" class="btn btn-sm custom-btn" name="message" value="Comedia"/>
-                    <input type="submit" class="btn btn-sm custom-btn" name="message" value="Accion" />
-                    <input type="submit" class="btn btn-sm custom-btn" name="message" value="Infantil"/>
-                    <input type="submit" class="btn btn-sm custom-btn" name="message" value="Romantica"/>
-                    <input type="submit" class="btn btn-sm custom-btn" name="message" value="Ciencia Ficción"/>
+                    <input type="submit" class="btn btn-sm custom-btn ms-3" name="message" value="Terror"/>
+                    <input type="submit" class="btn btn-sm custom-btn ms-3" name="message" value="Comedia"/>
+                    <input type="submit" class="btn btn-sm custom-btn ms-3" name="message" value="Accion" />
+                    <input type="submit" class="btn btn-sm custom-btn ms-3" name="message" value="Infantil"/>
+                    <input type="submit" class="btn btn-sm custom-btn ms-3" name="message" value="Romantica"/>
+                    <input type="submit" class="btn btn-sm custom-btn ms-3" name="message" value="Ciencia Ficción"/>
                 </div>
             </form>
             <form method="POST">
