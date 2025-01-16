@@ -9,7 +9,7 @@ function onLoad() {
     const targetNode = document.getElementById('scroller');
     const config = { childList: true };
     
-    const callback = function (mutationsList, observer) {
+    const callback = function (mutationsList/*, observer*/) {
         for (let mutation of mutationsList) {
           if (mutation.type === "childList") {
             window.scrollTo(0, document.body.scrollHeight);
