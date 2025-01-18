@@ -5,7 +5,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from db import db, db_config
 from os import getenv
-from bot import where_to_watch, search_movie_or_tv_show
+from bot import where_to_watch, search_movie_or_tv_show, search_video_movie
 from models import User, Message
 from forms import ProfileForm, SignUpForm, LoginForm
 from flask_wtf.csrf import CSRFProtect
@@ -75,6 +75,26 @@ tools = [
                 "additionalProperties": False
             }
         },
+    },
+    {
+        'type': 'function',
+        'function': {
+            "name": "search_video_movie",
+            "description": "Returns video about a specified movie.",
+            "parameters": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the movie to search for"
+                    }
+                },
+                "additionalProperties": False
+            }
+        },
     }
 ]
 
@@ -100,6 +120,8 @@ def chat():
     system_prompt = '''Eres un chatbot que recomienda películas, te llamas 'Salfatix'.
     - Tu rol es responder recomendaciones de manera breve y concisa.
     - No repitas recomendaciones.
+    - Tienes la capacidad de recomendar películas y series de televisión.
+    - Puedes recuperar videos de YouTube sobre películas.
     '''
 
         # Incluir preferencias del usuario
@@ -130,36 +152,63 @@ def chat():
             tool_calls = chat_completion.choices[0].message.tool_calls
             tool_call_smotv = [tool_call for tool_call in tool_calls if tool_call.function.name == 'search_movie_or_tv_show']
             tool_call_wtw = [tool_call for tool_call in tool_calls if tool_call.function.name == 'where_to_watch']
+            tool_call_svm = [tool_call for tool_call in tool_calls if tool_call.function.name == 'search_video_movie']
 
-            print('Primero ejecuto where_to_watch')
-            arguments_wtw = json.loads(tool_call_wtw[0].function.arguments)
-            name = arguments_wtw['name']
-            medita_type = arguments_wtw['media_type']
-            response_wtw = where_to_watch(name, medita_type, 'small')
-            
-            print('Segundo ejecuto search_movie_or_tv_show')
-            arguments_smotv = json.loads(tool_call_smotv[0].function.arguments)
-            name = arguments_smotv['name']
-            model_recommendation = search_movie_or_tv_show(name, user, client, response_wtw)
+            if(tool_call_wtw and tool_call_smotv):
+                print('Primero ejecuto where_to_watch')
+                arguments_wtw = json.loads(tool_call_wtw[0].function.arguments)
+                name = arguments_wtw['name']
+                medita_type = arguments_wtw['media_type']
+                response_wtw = where_to_watch(name, medita_type, 'small')
+                
+                print('Segundo ejecuto search_movie_or_tv_show')
+                arguments_smotv = json.loads(tool_call_smotv[0].function.arguments)
+                name = arguments_smotv['name']
+                model_recommendation = search_movie_or_tv_show(name, user, client, response_wtw)                
+
+            elif(tool_call_svm and tool_call_smotv):                
+                print('Solo ejecuto search_video_movie [smotv]')
+                arguments_svm = json.loads(tool_call_svm[0].function.arguments)
+                name = arguments_svm['name']
+                model_recommendation = search_video_movie(name)
+
+            else:
+                print('Primero ejecuto where_to_watch')
+                arguments_wtw = json.loads(tool_call_wtw[0].function.arguments)
+                name = arguments_wtw['name']
+                medita_type = arguments_wtw['media_type']
+                response_wtw = where_to_watch(name, medita_type, 'small')
+
+                print('Segundo ejecuto search_video_movie [wtw]')
+                arguments_svm = json.loads(tool_call_svm[0].function.arguments)
+                name = arguments_svm['name']
+                model_recommendation = search_video_movie(name, response_wtw)
 
             db.session.add(Message(content=model_recommendation, author="assistant", user=user))
-            db.session.commit()                
+            db.session.commit()           
+
         else:
             tool_call = chat_completion.choices[0].message.tool_calls[0]
-            if tool_call.function.name == 'where_to_watch':
+            print(tool_call.function.name)
+            if tool_call.function.name == 'where_to_watch':                
                 arguments = json.loads(tool_call.function.arguments)
                 name = arguments['name']
                 medita_type = arguments['media_type']
-                model_recommendation = where_to_watch(name, medita_type, 'full')
-                db.session.add(Message(content=model_recommendation, author="assistant", user=user))
-                db.session.commit()
-                
+                model_recommendation = where_to_watch(name, medita_type, 'full')                                
+
             if tool_call.function.name == 'search_movie_or_tv_show':
                 arguments = json.loads(tool_call.function.arguments)
                 name = arguments['name']
                 model_recommendation = search_movie_or_tv_show(name, user, client)
-                db.session.add(Message(content=model_recommendation, author="assistant", user=user))
-                db.session.commit()                
+
+            if tool_call.function.name == 'search_video_movie':
+                arguments = json.loads(tool_call.function.arguments)
+                name = arguments['name']
+                model_recommendation = search_video_movie(name)
+
+            db.session.add(Message(content=model_recommendation, author="assistant", user=user))
+            db.session.commit()
+
     else:
         model_recommendation = chat_completion.choices[0].message.content    
         db.session.add(Message(content=model_recommendation, author="assistant", user=user))

@@ -97,7 +97,7 @@ def where_to_watch(search_term: str, medita_type: str, response: str):
             return string_providers
 
 
-def search_movie_or_tv_show(search_term: str, user: User, client: OpenAI, response_wtw: str=None):
+def search_movie_or_tv_show(search_term: str, user: User, client: OpenAI, response_wtw: str=None, for_video: bool=False):
     api_key_tmdb = os.environ.get("API_TMDB_TOKEN")    
     headers = {
         "accept": "application/json",
@@ -161,3 +161,62 @@ def search_movie_or_tv_show(search_term: str, user: User, client: OpenAI, respon
       </div>
     </div>'''
     return  response
+
+def search_video_movie(search_term: str, response_wtw: str=None):
+    api_key_tmdb = os.environ.get("API_TMDB_TOKEN")    
+    headers = {
+        "accept": "application/json",
+        "Authorization": "Bearer "+api_key_tmdb
+    }
+
+    url_movie = "https://api.themoviedb.org/3/search/movie?query="+search_term+"&include_adult=false&language=es-CL&page=1&region=Chile"
+    try:
+        response_movie = requests.get(url_movie, headers=headers)
+        data_movie = response_movie.json()        
+    except:
+        return f'No pude encontrar {search_term} en mi base de datos de películas 😞. Tal vez puedes intentar revisando en TMDB: https://www.themoviedb.org/search?language=es&query={search_term}'
+    
+    if not data_movie['results']:
+        return f'No pude encontrar {search_term} en mi base de datos de películas 😞. Tal vez puedes intentar revisando en TMDB: https://www.themoviedb.org/search?language=es&query={search_term}'
+        
+    id = data_movie['results'][0]['id']
+    name = data_movie['results'][0]['original_title']
+    overview = data_movie['results'][0]['overview']
+    vote_average = data_movie['results'][0]['vote_average']
+
+    url_video_movie = "https://api.themoviedb.org/3/movie/"+str(id)+"/videos?language=en-US"   
+    try:
+        response_video_movie = requests.get(url_video_movie, headers=headers)
+        data_video_movie = response_video_movie.json()
+    except:
+        return f'No pude encontrar la película {search_term} en mi base de datos de videos 😞.'
+
+    if not data_video_movie['results']:
+        return f'No pude encontrar la película {search_term} en mi base de datos de videos 😞.'
+
+    videos_movie = [d for d in data_video_movie['results'] if d['type'] == 'Trailer']
+
+    if response_wtw:            
+        return f'''
+        🍿🎬Aquí te dejo el Trailler la película {name}:<br/><br/>
+        <div class="container_vid">
+        <iframe width="400" height="230" src="https://www.youtube.com/embed/{videos_movie[0]['key']}" title="Embed videos and playlists" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <div>
+            {overview}. Además, puedes verla en las siguientes plataformas: {response_wtw} 
+        </div>      
+        </div>
+        <div>
+            Puntuación: {vote_average}/10<br/><br/>Que lo disfrutes🎬!!!
+        </div>'''
+    else:
+        return f'''
+        🍿🎬Aquí te dejo el Trailler la película {name}:<br/><br/>
+        <div class="container_vid">
+        <iframe width="400" height="230" src="https://www.youtube.com/embed/{videos_movie[0]['key']}" title="Embed videos and playlists" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <div>
+            {overview}.
+        </div>      
+        </div>
+        <div>
+            Puntuación: {vote_average}/10<br/><br/>Que lo disfrutes🎬!!!
+        </div>'''        

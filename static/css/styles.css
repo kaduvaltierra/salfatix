@@ -9,3 +9,10 @@
     grid-template-columns: 1fr 10fr 0fr;
     column-gap: 10px;
 }
+
+.container_vid {
+    display: grid;
+    align-items: center; 
+    grid-template-columns: 1fr 10fr 0fr;
+    column-gap: 10px;
+}
